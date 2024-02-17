@@ -14,7 +14,7 @@ import qualified GeniusYield.Examples.Limbo     as Limbo
 import           GeniusYield.Imports
 import           GeniusYield.Types
 import           Servant
-import Plutus.V1.Ledger.Value (assetClassValue, Value)
+import PlutusLedgerApi.V1.Value (assetClassValue, Value)
 import GeniusYield.TxBuilder (valueFromPlutus', assetClassFromPlutus')
 
 data TokenParams = TokenParams
@@ -24,7 +24,7 @@ data TokenParams = TokenParams
 data CreateTokensParams = CreateTokensParams
   { ctpUsedAddrs  :: ![GYAddress]
   , ctpChangeAddr :: !GYAddress
-  , ctpCollateral :: !GYTxOutRefCbor
+  , ctpCollateral :: !(Maybe GYTxOutRefCbor)
   , ctpName :: !GYTokenName
   , ctpDatumCount :: !Integer
   } deriving (Show, Generic, FromJSON, Swagger.ToSchema)
@@ -48,7 +48,7 @@ data ListBalanceParams = ListBalanceParams
 data GeneralParams = GeneralParams
   { gpUsedAddrs  :: ![GYAddress]
   , gpChangeAddr :: !GYAddress
-  , gpCollateral :: !GYTxOutRefCbor
+  , gpCollateral :: !(Maybe GYTxOutRefCbor)
   } deriving (Show, Generic, FromJSON, Swagger.ToSchema)
 
 data StartParams = StartParams

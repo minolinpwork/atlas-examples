@@ -5,7 +5,7 @@ module Dex.Api.Scripts (
     Uniswap(..),
 ) where
 
-import           Plutus.V2.Ledger.Api
+import           PlutusLedgerApi.V2
 
 import           Dex.OnChain.Dex.Compiled (originalTestTokenPolicy)
 import           GeniusYield.Types
@@ -17,8 +17,7 @@ testTokenPolicy
     -> TokenName         -- ^ token name (e.g. @GOLD@)
     -> GYTxOutRef        -- ^ utxo to base token on
     -> GYMintingPolicy 'PlutusV2
-testTokenPolicy count tn utxo =
-    mintingPolicyFromPlutus  @'PlutusV2
+testTokenPolicy count tn utxo = mintingPolicyFromPlutus  @'PlutusV2
         $ originalTestTokenPolicy count tn (txOutRefToPlutus utxo)
 
 liquidityPolicy'

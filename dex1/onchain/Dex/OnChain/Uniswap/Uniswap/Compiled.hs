@@ -18,8 +18,8 @@ module Dex.OnChain.Uniswap.Uniswap.Compiled (
     Amount(..), UniswapAction (..)
 ) where
 
-import qualified Plutus.V2.Ledger.Api as V2  
-import qualified Plutus.V1.Ledger.Scripts
+import qualified PlutusLedgerApi.V2 as V2  
+import qualified PlutusLedgerApi.V1.Scripts
 
 import qualified PlutusTx
 
@@ -33,17 +33,18 @@ import Dex.OnChain.Uniswap.Types
     )
 import           Dex.OnChain.Uniswap.OnChain
 import           Dex.OnChain.Uniswap.Pool
+import           PlutusCore.Version    (plcVersion100)
 
 
 -- | Generates validator given params.
-uniswapValidator :: Uniswap -> Coin PoolState -> V2.Validator
-uniswapValidator us c = V2.mkValidatorScript $
+uniswapValidator :: Uniswap -> Coin PoolState -> PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())
+uniswapValidator us c = 
     $$(PlutusTx.compile [|| mkUniswapValidator' ||]) 
-    `PlutusTx.applyCode` PlutusTx.liftCode us
-    `PlutusTx.applyCode` PlutusTx.liftCode c
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 us
+    `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 c
 
-liquidityPolicy :: Uniswap -> V2.TokenName -> V2.MintingPolicy
-liquidityPolicy us poolStateTokenName = V2.mkMintingPolicyScript $
+liquidityPolicy :: Uniswap -> V2.TokenName -> PlutusTx.CompiledCode (PlutusTx.BuiltinData -> PlutusTx.BuiltinData -> ())
+liquidityPolicy us poolStateTokenName = 
     $$(PlutusTx.compile [|| validateLiquidityMinting' ||])
-        `PlutusTx.applyCode` PlutusTx.liftCode us
-        `PlutusTx.applyCode` PlutusTx.liftCode poolStateTokenName
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 us
+        `PlutusTx.unsafeApplyCode` PlutusTx.liftCode plcVersion100 poolStateTokenName

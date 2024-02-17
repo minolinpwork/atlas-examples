@@ -14,8 +14,8 @@ module Dex.OnChain.Uniswap.Pool
 import Dex.OnChain.Uniswap.Types
 import PlutusTx.Prelude hiding (ratio)
 import PlutusTx.Sqrt
-import Plutus.V2.Ledger.Api (TokenName (..), CurrencySymbol (..))
-import Plutus.V1.Ledger.Value (AssetClass(..))
+import PlutusLedgerApi.V2 (TokenName (..), CurrencySymbol (..))
+import PlutusLedgerApi.V1.Value (AssetClass(..))
 
 {-# INLINABLE calculateInitialLiquidity #-}
 -- | The initial liquidity is 'ceil( sqrt(x*y) )' where 'x' is the amount of

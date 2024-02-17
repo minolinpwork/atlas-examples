@@ -1,15 +1,11 @@
-{-# LANGUAGE DataKinds             #-}
-{-# LANGUAGE DerivingStrategies    #-}
-{-# LANGUAGE FlexibleContexts      #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NoImplicitPrelude     #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE RecordWildCards       #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
-{-# LANGUAGE TypeApplications      #-}
-{-# LANGUAGE TypeFamilies          #-}
-{-# OPTIONS_GHC -fno-specialise #-}
-{-# OPTIONS_GHC -g -fplugin-opt PlutusTx.Plugin:coverage-all #-}
+{-# LANGUAGE DerivingStrategies         #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses      #-}
+{-# LANGUAGE NoImplicitPrelude          #-}
+{-# LANGUAGE NumericUnderscores         #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TemplateHaskell            #-}
 
 module Dex.OnChain.Uniswap.OnChain
     ( mkUniswapValidator
@@ -22,13 +18,13 @@ import Data.Void (Void)
 import Dex.OnChain.Uniswap.Pool (calculateAdditionalLiquidity, calculateInitialLiquidity, calculateRemoval,
                                       checkSwap, lpTicker)
 import Dex.OnChain.Uniswap.Types
-import Plutus.V2.Ledger.Api (Datum (Datum), DatumHash, OutputDatum (..), ScriptContext (..), TokenName,
+import PlutusLedgerApi.V2 (Datum (Datum), DatumHash, OutputDatum (..), ScriptContext (..), TokenName,
                              TxInInfo (txInInfoResolved), TxInfo (txInfoInputs, txInfoMint),
-                             TxOut (txOutDatum, txOutValue), Value, UnsafeFromData(unsafeFromBuiltinData), ScriptPurpose (Minting))
-import qualified Plutus.V2.Ledger.Contexts as V2
+                             TxOut (txOutDatum, txOutValue), Value, UnsafeFromData(unsafeFromBuiltinData), ScriptPurpose (Minting), Address (Address), Credential (ScriptCredential), ScriptHash)
+import qualified PlutusLedgerApi.V2.Contexts as V2
 import qualified PlutusTx
 import PlutusTx.Prelude
-import Plutus.V1.Ledger.Value (AssetClass(..), symbols, assetClass, flattenValue, CurrencySymbol, assetClassValueOf)
+import PlutusLedgerApi.V1.Value (AssetClass(..), symbols, assetClass, flattenValue, CurrencySymbol, assetClassValueOf)
 import PlutusTx.Builtins.Class (stringToBuiltinString)
 
 
@@ -40,6 +36,13 @@ findOwnInput' ctx = fromMaybe (error ()) (V2.findOwnInput ctx)
 {-# INLINABLE valueWithin #-}
 valueWithin :: TxInInfo -> Value
 valueWithin = txOutValue . txInInfoResolved
+
+{-# INLINABLE ownHashes #-}
+-- | Get the validator and datum hashes of the output that is curently being validated
+ownHashes :: ScriptContext -> (ScriptHash, OutputDatum)
+ownHashes (V2.findOwnInput -> Just V2.TxInInfo{txInInfoResolved=V2.TxOut{txOutAddress=Address (ScriptCredential s) _, txOutDatum=d}}) = (s,d)
+ownHashes _ = traceError "Lg" -- "Can't get validator and datum hashes"
+
 
 {-# INLINABLE validateSwap #-}
 -- | We check the swap is valid through 'checkSwap', and otherwise just make
@@ -60,7 +63,7 @@ validateSwap LiquidityPool{..} c ctx =
     ownOutput :: TxOut
     ownOutput = case [ o
                      | o <- V2.getContinuingOutputs ctx
-                     , txOutDatum o == (snd $ V2.ownHashes ctx)
+                     , txOutDatum o == snd (ownHashes ctx)
                      ] of
         [o] -> o
         _   -> traceError "expected exactly one output to the same liquidity pool"
@@ -105,12 +108,24 @@ validateCreate :: Uniswap
                -> Bool
 validateCreate Uniswap{..} c lps lp@LiquidityPool{..} ctx =
     traceIfFalse "Min VC 0: Uniswap coin not present" (isUnity (valueWithin $ findOwnInput' ctx) usCoin)     && -- 1.
+     -- 1.
+     -- 1.
+     -- 1.
     traceIfFalse "Min VC 1: " (unCoin lpCoinA /= unCoin lpCoinB)                                                             && -- 3.
-    traceIfFalse "Min VC 2: " (notElem lp lps)                                                                                 && -- 4.
+     -- 3.
+     -- 3.
+     -- 3.
+    traceIfFalse "Min VC 2: " (lp `notElem` lps)                                                                                 && -- 4.
+     -- 4.
+     -- 4.
+     -- 4.
     traceIfFalse "Min VC 3: " (isUnity minted c) &&
     traceIfFalse "Min VC 4: " (amountOf minted liquidityCoin' == liquidity)                                                  && -- 6.
+     -- 6.
+     -- 6.
+     -- 6.
     traceIfFalse "Min VC 5: " (outA > 0)                                                                                     && -- 7.
-    traceIfFalse "Min VC 6: " (outB > 0)         
+    traceIfFalse "Min VC 6: " (outB > 0)
   where
     poolOutput :: TxOut
     poolOutput = case [o | o <- V2.getContinuingOutputs ctx, isUnity (txOutValue o) c] of
@@ -160,13 +175,37 @@ validateCreate Uniswap{..} c lps lp@LiquidityPool{..} ctx =
 validateCloseFactory :: Uniswap -> Coin PoolState -> [LiquidityPool] -> ScriptContext -> Bool
 validateCloseFactory Uniswap{..} c lps ctx =
     traceIfFalse "Uniswap coin not present" (isUnity (valueWithin $ findOwnInput' ctx) usCoin)                        && -- 1.
+     -- 1.
+     -- 1.
+     -- 1.
     traceIfFalse "Min.VCF.poolVal incorrect" poolVal && -- 2.
+     -- 2.
+     -- 2.
+     -- 2.
     traceIfFalse "Min.VCF.liqVal incorrect" liqVal && -- 2.
+     -- 2.
+     -- 2.
+     -- 2.
     traceIfFalse "Min.VCF.liqVal2 incorrect" liqVal2 && -- 2.
+     -- 2.
+     -- 2.
+     -- 2.
     traceIfFalse "Min.VCF.liqVal22 incorrect" liqVal22 && -- 2.
     -- traceIfFalse liqVal4 liqVal3 && -- 2.
+     -- 2.
+    -- traceIfFalse liqVal4 liqVal3 && -- 2.
+     -- 2.
+    -- traceIfFalse liqVal4 liqVal3 && -- 2.
+     -- 2.
+    -- traceIfFalse liqVal4 liqVal3 && -- 2.
     traceIfFalse "Min.VCF.liqVal23 incorrect" (ac c == ac lC) && -- 2.
+     -- 2.
+     -- 2.
+     -- 2.
     traceIfFalse "Min.VCF.liqVal24 incorrect" liqVal24 && -- 2.
+     -- 2.
+     -- 2.
+     -- 2.
     traceIfFalse "Min.VCF.liqVal3 incorrect" liqVal3 && -- 2.
     traceIfFalse "MIN.VCF.wrong mint value"        (txInfoMint info == negate (unitValue c <>  valueOf lC (snd lpLiquidity))) -- 2.
 --    traceIfFalse "wrong mint value"        (txInfoMint info == negate (unitValue c <>  valueOf lC (snd lpLiquidity))) -- 2.

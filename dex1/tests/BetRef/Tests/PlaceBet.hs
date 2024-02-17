@@ -49,13 +49,13 @@ computeParamsAndAddRefScript betUntil' betReveal' betStep Wallets{..} = do
       betReveal = slotFromApi (fromInteger betReveal')
   fmap fromJust $ runWallet w1 $ do
     liftRun $ logInfo $ printf "hello world min 2"
-    balw1 <- (balance w1)
+    balw1 <- balance w1
     liftRun $ logInfo $ printf "hello world min 2.w1 %s" balw1
-    balw2 <- (balance w2)
+    balw2 <- balance w2
     liftRun $ logInfo $ printf "hello world min 2.w2 %s" balw2
-    balw8 <- (balance w8)
+    balw8 <- balance w8
     liftRun $ logInfo $ printf "hello world min 2.w8 %s" balw8
-    balw9 <- (balance w9)
+    balw9 <- balance w9
     liftRun $ logInfo $ printf "hello world min 2.w9 %s" balw9
     betUntilTime <- slotToBeginTime betUntil
     betRevealTime <- slotToBeginTime betReveal
@@ -63,13 +63,13 @@ computeParamsAndAddRefScript betUntil' betReveal' betStep Wallets{..} = do
     liftRun $ logInfo $ printf "hello world min 3"
     mORef <- addRefScript (walletAddress w9) (betRefValidator' brp)
     liftRun $ logInfo $ printf "hello world min 4"
-    balw1 <- (balance w1)
+    balw1 <- balance w1
     liftRun $ logInfo $ printf "hello world min 4.w1 %s" balw1
-    balw2 <- (balance w2)
+    balw2 <- balance w2
     liftRun $ logInfo $ printf "hello world min 4.w2 %s" balw2
-    balw8 <- (balance w8)
+    balw8 <- balance w8
     liftRun $ logInfo $ printf "hello world min 4.w8 %s" balw8
-    balw9 <- (balance w9)
+    balw9 <- balance w9
     liftRun $ logInfo $ printf "hello world min 4.w9 %s" balw9
     case mORef of
       Nothing        -> fail "Couldn't find index of the Reference Script in outputs"
@@ -107,16 +107,16 @@ firstBetTrace dat bet expectedFees ws@Wallets{..} = do
   void $ logInfo $ printf "hello world min 7.w8 %s" balw8
   balw9 <- fromJust <$> runWallet w1 (balance w9)
   void $ logInfo $ printf "hello world min 7.w9 %s" balw9
-  let bet2 = bet <> (valueFromLovelace 22_000_002)
+  let bet2 = bet <> valueFromLovelace 22_000_002
   void $ runWallet w1 $ do  -- following operations are ran by first wallet, `w1`
     liftRun $ logInfo $ printf "hello world min 8"
-    balw1 <- (balance w1)
+    balw1 <- balance w1
     liftRun $ logInfo $ printf "hello world min 9.w1 %s" balw1
-    balw2 <- (balance w2)
+    balw2 <- balance w2
     liftRun $ logInfo $ printf "hello world min 9.w2 %s" balw2
-    balw8 <- (balance w8)
+    balw8 <- balance w8
     liftRun $ logInfo $ printf "hello world min 9.w8 %s" balw8
-    balw9 <- (balance w9)
+    balw9 <- balance w9
     liftRun $ logInfo $ printf "hello world min 9.w9 %s" balw9
   -- Second step: Perform the actual run.
     withWalletBalancesCheck [w1 := valueNegate (valueFromLovelace expectedFees <> bet2)] $ do
@@ -172,7 +172,7 @@ multipleBetsTraceCore brp refScript walletBets ws@Wallets{..} = do
           -- need to get previous bet utxo
           void $ runWallet (getWallet ws) $ do
             betRefAddr <- betRefAddress brp
-            [_scriptUtxo@GYUTxO {utxoRef}] <- utxosToList <$> utxosAtAddress betRefAddr
+            [_scriptUtxo@GYUTxO {utxoRef}] <- utxosToList <$> utxosAtAddress betRefAddr Nothing
             void $ placeBetRun refScript brp dat bet (Just utxoRef)
           performBetOperations remWalletBets False
       -- | To sum the bet amount for the corresponding wallet.

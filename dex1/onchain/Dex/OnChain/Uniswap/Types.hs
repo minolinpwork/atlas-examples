@@ -15,6 +15,7 @@
 {-# options_ghc -Wno-redundant-constraints #-}
 {-# options_ghc -fno-specialise            #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -fplugin-opt PlutusTx.Plugin:target-version=1.0.0 #-}
 
 module Dex.OnChain.Uniswap.Types
   where
@@ -27,8 +28,20 @@ import qualified PlutusTx
 import PlutusTx.Prelude
 import qualified Prelude as Haskell
 import Text.Printf (PrintfArg)
-import Plutus.V1.Ledger.Value (AssetClass (..), Value, assetClassValueOf, assetClassValue, assetClass)
-import Plutus.V2.Ledger.Api (CurrencySymbol (..), TokenName (..))
+import PlutusLedgerApi.V1.Value (AssetClass (..), Value, assetClassValueOf, assetClassValue, assetClass)
+import PlutusLedgerApi.V2 (CurrencySymbol (..), TokenName (..))
+import Control.DeepSeq (NFData)
+import PlutusTx.Lift (makeLift)
+import PlutusTx.Lift qualified as Lift
+import Data.Kind (Type)
+
+type NewtypeInt :: Type -> Type
+newtype NewtypeInt x = NewtypeInt { unNt :: Integer }
+Lift.makeLift ''NewtypeInt
+
+type TA :: Type -> Type
+newtype TA a = TA Bool
+Lift.makeLift ''TA
 
 -- | Uniswap coin token
 data U = U deriving (Haskell.Show, Haskell.Eq, Generic, Data)
@@ -51,7 +64,10 @@ PlutusTx.makeIsDataIndexed ''PoolState [('PoolState, 0)]
 PlutusTx.makeLift ''PoolState
 
 -- | Liquidity-state coin token
-data Liquidity = Liquidity deriving Data
+data Liquidity = Liquidity 
+                  deriving Data
+                  deriving stock (Haskell.Show, Haskell.Eq, Generic)
+
 PlutusTx.makeIsDataIndexed ''Liquidity [('Liquidity, 0)]
 PlutusTx.makeLift ''Liquidity
 
@@ -62,8 +78,17 @@ deriving newtype instance OpenApi.ToSchema TokenName
 deriving newtype instance OpenApi.ToSchema CurrencySymbol
 deriving newtype instance OpenApi.ToSchema AssetClass
 
+
+type MySillyRedeemer :: Type -> Type
+newtype MySillyRedeemer a = MySillyRedeemer TokenName
+PlutusTx.makeIsDataIndexed ''MySillyRedeemer [('MySillyRedeemer, 0)]
+PlutusTx.makeLift ''MySillyRedeemer
+
+
 -- | A single 'AssetClass'. Because we use three coins, we use a phantom type to track
 -- which one is which.
+-- which one is which.
+type Coin :: Type -> Type
 newtype Coin a = Coin { unCoin :: AssetClass }
   deriving stock   (Haskell.Show, Generic, Data)
   deriving newtype (Eq, Haskell.Eq, Haskell.Ord, OpenApi.ToSchema)
@@ -72,11 +97,12 @@ PlutusTx.makeLift ''Coin
 
 -- | Likewise for 'Integer'; the corresponding amount we have of the
 -- particular 'Coin'.
+type Amount :: Type -> Type
 newtype Amount a = Amount { unAmount :: Integer }
   deriving stock   (Haskell.Show, Generic, Data)
   deriving newtype (ToJSON, FromJSON, Eq, Ord, PrintfArg)
   deriving newtype (Haskell.Eq, Haskell.Ord, Haskell.Num)
-  deriving newtype (AdditiveGroup, AdditiveMonoid, AdditiveSemigroup, MultiplicativeSemigroup)
+    deriving newtype (AdditiveGroup, AdditiveMonoid, AdditiveSemigroup, MultiplicativeSemigroup)
 PlutusTx.makeIsDataIndexed ''Amount [('Amount, 0)]
 PlutusTx.makeLift ''Amount
 
@@ -117,7 +143,7 @@ data LiquidityPool = LiquidityPool
     , lpCoinB :: Coin B
     }
     deriving (Haskell.Show, Generic, Data)
-
+   
 PlutusTx.makeIsDataIndexed ''LiquidityPool [('LiquidityPool, 0)]
 PlutusTx.makeLift ''LiquidityPool
 
@@ -136,11 +162,11 @@ instance Haskell.Eq LiquidityPool where
 data UniswapAction = Create LiquidityPool | Close | Swap | Remove | Add
     deriving Haskell.Show
 PlutusTx.makeIsDataIndexed ''UniswapAction [ ('Create , 0)
-                                           , ('Close,   1)
-                                           , ('Swap,    2)
-                                           , ('Remove,  3)
-                                           , ('Add,     4)
-                                           ]
+                                            , ('Close,   1)
+                                            , ('Swap,    2)
+                                            , ('Remove,  3)
+                                            , ('Add,     4)
+                                            ]
 PlutusTx.makeLift ''UniswapAction
 
 data UniswapDatum =
@@ -148,6 +174,6 @@ data UniswapDatum =
     | Pool LiquidityPool (Amount Liquidity)
     deriving stock (Haskell.Show)
 PlutusTx.makeIsDataIndexed ''UniswapDatum [ ('Factory, 0)
-                                          , ('Pool,    1)
-                                          ]
+                                            , ('Pool,    1)
+                                            ]
 PlutusTx.makeLift ''UniswapDatum

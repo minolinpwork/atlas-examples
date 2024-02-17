@@ -15,11 +15,11 @@ module BetRef.OnChain.BetRef
   , BetRefAction (..)
   ) where
 
-import           Plutus.V1.Ledger.Address  (toPubKeyHash)
-import           Plutus.V1.Ledger.Interval (contains)
-import           Plutus.V1.Ledger.Value    (geq)
-import           Plutus.V2.Ledger.Api
-import           Plutus.V2.Ledger.Contexts (findDatum, findOwnInput,
+import           PlutusLedgerApi.V1.Address  (toPubKeyHash)
+import           PlutusLedgerApi.V1.Interval (contains)
+import           PlutusLedgerApi.V1.Value    (geq)
+import           PlutusLedgerApi.V2
+import           PlutusLedgerApi.V2.Contexts (findDatum, findOwnInput,
                                             getContinuingOutputs)
 import qualified PlutusTx
 import           PlutusTx.Prelude          as PlutusTx

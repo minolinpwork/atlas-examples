@@ -2,6 +2,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# OPTIONS -fno-strictness -fno-spec-constr -fno-specialise #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use newtype instead of data" #-}
 module Dex.OnChain.Token (
     mkTestTokenPolicy,
     MyTestDatum (..),
@@ -9,8 +11,8 @@ module Dex.OnChain.Token (
     mkCoin',
 ) where
 
-import           Plutus.V2.Ledger.Api
-import           Plutus.V1.Ledger.Value    (flattenValue)
+import           PlutusLedgerApi.V2
+import           PlutusLedgerApi.V1.Value    (flattenValue)
 import qualified PlutusTx
 import           PlutusTx.Prelude          as PlutusTx
 import Dex.OnChain.Uniswap.Types

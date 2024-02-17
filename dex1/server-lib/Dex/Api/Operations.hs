@@ -33,11 +33,11 @@ import qualified Data.Map.Strict       as Map
 import           Dex.OnChain.Dex.Compiled
 import qualified Dex.OnChain.Uniswap.Uniswap.Compiled as LQS
 import Data.Data (typeOf)
-import Plutus.V2.Ledger.Api (POSIXTime, CurrencySymbol, TxOutRef)
+import PlutusLedgerApi.V2 (POSIXTime, CurrencySymbol, TxOutRef)
 import Dex.OnChain.Uniswap.Pool
 import Dex.OnChain.Uniswap.Types 
 import Dex.OnChain.Uniswap.Types as TTA
-import Plutus.V1.Ledger.Value (assetClassValue, Value)
+import PlutusLedgerApi.V1.Value (assetClassValue, Value)
 
 --import qualified Data.Type.Equality as LiquidityPool
 --import qualified PlutusTx as TT
@@ -122,12 +122,12 @@ createPool addr us coinA amountA coinB amountB = do
     lpTokenName <- tokenNameFromPlutus' $ lpTicker lp
     let 
         --liquidityPolicy'' = liquidityPolicy' us lpTokenName
-        psLiquidityPolicy = liquidityPolicy' us poolStateTokenName
+        psLiquidityPolicy = GYMintScript $ liquidityPolicy' us poolStateTokenName
     gyLogInfo' "" $ printf "createPool 6"
     
     gyLogInfo' "" $ printf "createPool 6.0 %s" (show lpTokenName)
     refs <- utxoRefsAtAddress addr
-    uts <- utxosAtAddress addr
+    uts <- utxosAtAddress addr Nothing
     let
         skel = mconcat [mustHaveInput (GYTxIn ut GYTxInWitnessKey) | ut <- refs ]
     gyLogInfo' "" $ printf "createPool 6.1 %s" (show skel)
@@ -195,7 +195,7 @@ closePool us coinA coinB = do
     lpTokenName <- tokenNameFromPlutus' $ lpTicker lp
     let 
         --liquidityPolicy'' = liquidityPolicy' us lpTokenName
-        psLiquidityPolicy = liquidityPolicy' us poolStateTokenName    
+        psLiquidityPolicy = GYMintScript $ liquidityPolicy' us poolStateTokenName    
     let 
         txSkeleton =
                   mustMint psLiquidityPolicy unitRedeemer poolStateTokenName (negate 1)
@@ -245,7 +245,7 @@ remove us coinA coinB rpDiff = do
         inB         = amountOf v' coinB
         (outA, outB) = calculateRemoval inA inB liquidity rpDiff
         val          = unitValue psC <> valueOf coinA outA <> valueOf coinB outB
-        psLiquidityPolicy = liquidityPolicy' us poolStateTokenName    
+        psLiquidityPolicy = GYMintScript $ liquidityPolicy' us poolStateTokenName    
     scriptAddr <- uniswapAddress us 
     let 
     val' <- valueFromPlutus' val
@@ -298,7 +298,7 @@ add us coinA amountA coinB amountB = do
         delL        = calculateAdditionalLiquidity oldA oldB liquidity amountA amountB
         usDat       = Pool lp $ liquidity + delL
         val         = unitValue psC <> valueOf coinA newA <> valueOf coinB newB
-        psLiquidityPolicy = liquidityPolicy' us poolStateTokenName  
+        psLiquidityPolicy = GYMintScript $ liquidityPolicy' us poolStateTokenName  
     gyLogInfo' "" $ printf "MIN.add.1.4 delL:%s" (show delL)
     when (delL <= 0) $ error "insufficient liquidity"  
     gyLogInfo' "" $ printf "MIN.add.1.5 oldA:%s oldB:%s newA:%s newB:%s" (show oldA) (show oldB) (show newA) (show newB)
@@ -416,7 +416,7 @@ pools :: GYTxQueryMonad m => Uniswap -> m [(GYTxOutRef, (Coin Liquidity, Amount 
 pools us = do
     scriptAddr <- uniswapAddress us
     gyLogInfo' "" $ printf "Min.pools.1 addr %s" (show scriptAddr)
-    utxos <- utxosAtAddress scriptAddr
+    utxos <- utxosAtAddress scriptAddr Nothing
     gyLogInfo' "" $ printf "Min.pools.2 utxos %s" (show utxos)
 
     let        
@@ -510,7 +510,7 @@ findUniswapInstance :: (HasCallStack, GYTxMonad m )
 findUniswapInstance us c f = do
     addr <- uniswapAddress us
     gyLogInfo' "" $ printf "findUniswapInstance 1 addr %s" (show addr)
-    utxos  <- utxosAtAddress addr
+    utxos  <- utxosAtAddress addr Nothing
     gyLogInfo' "" $ printf "findUniswapInstance 2 utxos %s" (show utxos)
     let utxos' = filterUTxOs (\GYUTxO {utxoValue} -> isUnity (valueToPlutus utxoValue) c) utxos
     gyLogInfo' "" $ printf "findUniswapInstance 3 utxos %s" (show utxos')
@@ -588,7 +588,7 @@ listFactory :: GYTxQueryMonad m
 listFactory us = do
     addr <- uniswapAddress us 
     gyLogInfo' "" $ printf "listFactory 1 addr %s" (show addr)
-    utxos  <- utxosAtAddress addr
+    utxos  <- utxosAtAddress addr Nothing
     gyLogInfo' "" $ printf "listFactory 2 utxos %s" (show (utxos))
     let utxos2 = utxos -- filterUTxOs (\u@(GYUTxO ref a v mh ms) -> checkDatumX mh) utxos
     utxos' <- utxosDatums utxos2
@@ -607,7 +607,7 @@ listFactory' :: GYTxQueryMonad m
 listFactory' us = do
     addr <- uniswapAddress us 
     gyLogInfo' "" $ printf "listFactory 1 addr %s" (show addr)
-    utxos  <- utxosAtAddress addr
+    utxos  <- utxosAtAddress addr Nothing
     gyLogInfo' "" $ printf "listFactory 2 utxos %s" (show (utxos))
     let utxos2 = utxos -- filterUTxOs (\u@(GYUTxO ref a v mh ms) -> checkDatumX mh) utxos
     utxos' <- utxosDatums utxos2
@@ -636,13 +636,13 @@ mintTestTokens :: GYTxMonad m
                -> m (GYAssetClass, GYTxSkeleton 'PlutusV2)
 mintTestTokens tn amt = do
     -- utxo to base token of.
-    utxo <- someUTxO
+    utxo <- someUTxO PlutusV1
 
     let amt'   = toInteger (max 1 amt) -- mint at least 1 token.
         policy = testTokenPolicy amt' (tokenNameToPlutus tn) utxo
 
     let txSkeleton = mustHaveInput (GYTxIn utxo GYTxInWitnessKey)
-                  <> mustMint policy unitRedeemer tn amt'
+                  <> mustMint (GYMintScript policy) unitRedeemer tn amt'
 
     return (GYToken (mintingPolicyId policy) tn, txSkeleton)
     
@@ -662,14 +662,14 @@ mintDatumTokens :: GYTxMonad m
                -> m (GYTxSkeleton 'PlutusV2)
 mintDatumTokens addr tn amt dat = do
     -- utxo to base token of.
-    utxo <- someUTxO
+    utxo <- someUTxO PlutusV1
 
     let amt'   = toInteger (max 1 amt) -- mint at least 1 token.
         policy = testTokenPolicy amt' (tokenNameToPlutus tn) utxo
         mtd = MyTestDatum ([1..dat])
 
     let txSkeleton = mustHaveInput (GYTxIn utxo GYTxInWitnessKey)
-                  <> mustMint policy unitRedeemer tn amt' 
+                  <> mustMint (GYMintScript policy) unitRedeemer tn amt' 
                   <> mustHaveOutput (GYTxOut
                     { gyTxOutAddress = addr
                     , gyTxOutValue = mempty
@@ -698,7 +698,8 @@ listBalance' addrs = do
 listsDatum :: GYTxQueryMonad m => [GYAddress] -> m [(GYTxOutRef, [Integer])]
 listsDatum addrs = do
     gyLogInfo' "" $ printf "listsDatum 1 %s" (show addrs)
-    slot   <- currentSlot
+    slot   <- slotOfCurrentBlock
+    -- Min double check above
     gyLogInfo' "" $ printf "listsDatum 2 %s" (show (slot))
     now    <- slotToBeginTime slot
     gyLogInfo' "" $ printf "listsDatum 3 %s" (show (now))
@@ -732,7 +733,7 @@ listsDatum addrs = do
 
 listsDatum1 :: GYTxQueryMonad m => GYAddress -> m [(GYTxOutRef, Maybe [Integer])]
 listsDatum1 addr = do
-    utxos  <- utxosAtAddress addr
+    utxos  <- utxosAtAddress addr Nothing
 
     gyLogInfo' "" $ printf "hello 1 %s" (show (utxos))
     -- no constructor gyLogInfo' "" $ printf "hello 1.2 %s" (show [mh | (ref, (a, v, mh, ms)) <- Map.toList utxos])

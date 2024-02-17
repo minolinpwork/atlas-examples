@@ -9,7 +9,7 @@ import qualified Data.Set                       as Set
 import           Test.Tasty                     (TestTree, testGroup)
 
 import           Plutus.Model
-import           Plutus.Model.Fork.TxExtra
+--import           Plutus.Model.Fork.TxExtra
 
 import           Dex.Api.Operations (mShowUtxos, mintTestTokens, createFactory, createPool, closePool, pools, poolsGY, funds, remove, add, swap)
 import           Dex.OnChain.Dex.Compiled
@@ -21,7 +21,7 @@ import Data.String
 import qualified GeniusYield.Types.Logging
 import qualified GeniusYield.Types.Value
 
-import Plutus.Model.Fork.Ledger.Scripts
+--import Plutus.Model.Fork.Ledger.Scripts
 import Data.Either (rights)
 import GeniusYield.Imports (printf)
 import Dex.Api.Dex (uniswap)
@@ -51,11 +51,11 @@ testDouble tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 200)     
                     liftRun $ logInfo $ printf "Min.CreatePool1.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool1.1.w1 %s" balw1
                     poolTx <- sendSkeleton poolSkeleton
                     liftRun $ logInfo $ printf "Min.CreatePool2.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool2.1.w1 %s" balw1
                     empty <- mShowUtxos us
                     poolsList <- pools us
@@ -73,7 +73,7 @@ testDouble tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     removeTx <- sendSkeleton removeSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Remove.1.w1 %s" balw1
 
                     liftRun $ logInfo $ printf "Min.Add.1"
@@ -83,7 +83,7 @@ testDouble tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     addTx <- sendSkeleton addSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Add.1.w1 %s" balw1
 
                     liftRun $ logInfo $ printf "Min.Swap.1"
@@ -93,7 +93,7 @@ testDouble tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 0)     
                     swapTx <- sendSkeleton swapSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Swap.1.w1 %s" balw1
 
 
@@ -125,11 +125,11 @@ testSwap tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 200)     
                     liftRun $ logInfo $ printf "Min.CreatePool1.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool1.1.w1 %s" balw1
                     poolTx <- sendSkeleton poolSkeleton
                     liftRun $ logInfo $ printf "Min.CreatePool2.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool2.1.w1 %s" balw1
                     empty <- mShowUtxos us
                     poolsList <- pools us
@@ -147,7 +147,7 @@ testSwap tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     removeTx <- sendSkeleton removeSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Remove.1.w1 %s" balw1
 
                     liftRun $ logInfo $ printf "Min.Add.1"
@@ -157,7 +157,7 @@ testSwap tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     addTx <- sendSkeleton addSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Add.1.w1 %s" balw1
 
                     liftRun $ logInfo $ printf "Min.Swap.1"
@@ -167,7 +167,7 @@ testSwap tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 0)     
                     swapTx <- sendSkeleton swapSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Swap.1.w1 %s" balw1
 
 
@@ -198,11 +198,11 @@ testAdd tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     liftRun $ logInfo $ printf "Min.CreatePool1.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool1.1.w1 %s" balw1
                     poolTx <- sendSkeleton poolSkeleton
                     liftRun $ logInfo $ printf "Min.CreatePool2.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool2.1.w1 %s" balw1
                     empty <- mShowUtxos us
                     poolsList <- pools us
@@ -220,7 +220,7 @@ testAdd tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     removeTx <- sendSkeleton removeSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Remove.1.w1 %s" balw1
 
                     liftRun $ logInfo $ printf "Min.Add.1"
@@ -230,7 +230,7 @@ testAdd tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     addTx <- sendSkeleton addSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Add.1.w1 %s" balw1
 
 
@@ -262,11 +262,11 @@ testRemove tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     liftRun $ logInfo $ printf "Min.CreatePool1.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool1.1.w1 %s" balw1
                     poolTx <- sendSkeleton poolSkeleton
                     liftRun $ logInfo $ printf "Min.CreatePool2.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool2.1.w1 %s" balw1
                     empty <- mShowUtxos us
                     poolsList <- pools us
@@ -284,7 +284,7 @@ testRemove tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     removeTx <- sendSkeleton removeSkeleton
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.Remove.1.w1 %s" balw1
 
                     return (ass1, tx1)
@@ -314,11 +314,11 @@ testFunds tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     liftRun $ logInfo $ printf "Min.CreatePool1.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool1.1.w1 %s" balw1
                     poolTx <- sendSkeleton poolSkeleton
                     liftRun $ logInfo $ printf "Min.CreatePool2.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool2.1.w1 %s" balw1
                     empty <- mShowUtxos us
                     poolsList <- pools us
@@ -356,11 +356,11 @@ showPools1 tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     liftRun $ logInfo $ printf "Min.CreatePool1.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool1.1.w1 %s" balw1
                     poolTx <- sendSkeleton poolSkeleton
                     liftRun $ logInfo $ printf "Min.CreatePool2.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool2.1.w1 %s" balw1
                     empty <- mShowUtxos us
                     poolsList <- pools us
@@ -392,11 +392,11 @@ closePool1 tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     liftRun $ logInfo $ printf "Min.CreatePool1.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool1.1.w1 %s" balw1
                     poolTx <- sendSkeleton poolSkeleton
                     liftRun $ logInfo $ printf "Min.CreatePool2.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool2.1.w1 %s" balw1
                     empty <- mShowUtxos us
 
@@ -437,11 +437,11 @@ createPool1 tn noOfTokens ws@Wallets{..} = do
                         (Script'.Coin fakeIron)
                         (Script'.Amount 2)     
                     liftRun $ logInfo $ printf "Min.CreatePool1.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool1.1.w1 %s" balw1
                     poolTx <- sendSkeleton poolSkeleton                                         
                     liftRun $ logInfo $ printf "Min.CreatePool2.1"
-                    balw1 <- (balance w1)
+                    balw1 <- balance w1
                     liftRun $ logInfo $ printf "Min.CreatePool2.1.w1 %s" balw1
                     empty <- mShowUtxos us
                     return b
@@ -464,7 +464,7 @@ createTrace4 tn noOfTokens ws@Wallets{..} = do
     void $ runWallet w1 $ do 
         (b, diff) <- withBalance (walletName w1) w1 $ do
                         createTokenRun''' tn' noOfTokens
-        if (invalid diff) 
+        if invalid diff
             then fail $ printf "Min: expected balance difference of %s for wallet %s, but the actual difference was %s" b (walletName w1) diff
             else return (b, diff)                                
                             where
@@ -475,11 +475,11 @@ createTrace4 tn noOfTokens ws@Wallets{..} = do
                                     let 
                                         (actualAda, actualOtherAssets) = valueSplitAda diff
                                     in
-                                        actualAda>=0 || (valueTotalAssets actualOtherAssets) /= 1
+                                        actualAda>=0 || valueTotalAssets actualOtherAssets /= 1
                                 
                                 
 
-
+{-
 
 
 
@@ -566,3 +566,5 @@ createTrace'' tn ws@Wallets{..} = do
         --withWalletBalancesCheck [w1 := valueNegate (valueFromLovelace 419_497)] $ do
              -- <> rights [valueFromPlutus $ mint'value mint | mint <- mints]] $ do
             --pure txId
+
+-}

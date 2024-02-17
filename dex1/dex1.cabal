@@ -1,9 +1,45 @@
-cabal-version:      2.2
+cabal-version:      3.6
 name:               dex1 
-version:            0.1.0.0
+version:            0.1.0
 
 common dex-common
-  default-language:   Haskell2010
+  default-language:   GHC2021
+  default-extensions:
+    DataKinds
+    DeriveAnyClass
+    DerivingStrategies
+    DerivingVia
+    GADTs
+    LambdaCase
+    MultiWayIf
+    OverloadedStrings
+    RecordWildCards
+    RoleAnnotations
+    TypeFamilies
+    UndecidableInstances
+    ViewPatterns
+    
+  ghc-options:        -Wall -Wincomplete-uni-patterns -Wunused-packages
+
+  ghc-options:        -fno-show-valid-hole-fits
+
+common plutus-ghc-options
+  -- so unfoldings are present even when compiled without optmizations
+  ghc-options:
+    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
+    -Wno-partial-type-signatures
+
+  -- expose all unfoldings, so plutustx compiler can do its job
+  ghc-options:
+    -fexpose-all-unfoldings -fobject-code
+    -fplugin-opt PlutusTx.Plugin:defer-errors
+
+  -- set target plutus-core version
+  ghc-options: -fplugin-opt PlutusTx.Plugin:target-version=1.0.0
+
+
+common betref-common
+  default-language:   GHC2021
   default-extensions:
     DerivingStrategies
     DeriveAnyClass
@@ -22,38 +58,21 @@ common dex-common
     DeriveLift
     DeriveTraversable
     GeneralizedNewtypeDeriving
-  ghc-options:
-    -Wall -Wunticked-promoted-constructors -Wunused-packages
-  ghc-options: -haddock 
 
-common betref-common
-  default-language:   Haskell2010
-  default-extensions:
-    DerivingStrategies
-    DeriveAnyClass
-    DeriveGeneric
-    DataKinds
-    OverloadedStrings
-    TypeApplications
-    RecordWildCards
-    TypeOperators
-    NamedFieldPuns
-    NumericUnderscores
+    DerivingVia
+    GADTs
+    LambdaCase
+    MultiWayIf
+    RoleAnnotations
+    TypeFamilies
+    UndecidableInstances
+    ViewPatterns
   ghc-options:
-    -Wall -Wunticked-promoted-constructors -Wunused-packages
-  ghc-options: -haddock 
+    -Wall -Wincomplete-uni-patterns -Wunused-packages -Wall -Wunticked-promoted-constructors
+  ghc-options: -haddock -fno-show-valid-hole-fits
 
 library dex-onchain
-  import:           dex-common
-
-  -- so unfoldings are present even when compiled without optmizations
-  ghc-options:
-    -fno-ignore-interface-pragmas -fno-omit-interface-pragmas
-    -Wno-partial-type-signatures
-  ghc-options: -haddock 
-
-  -- expose all unfoldings, so plutustx compiler can do its job
-  ghc-options:      -fexpose-all-unfoldings -fobject-code -fplugin-opt PlutusTx.Plugin:defer-errors
+  import:           dex-common, plutus-ghc-options
   hs-source-dirs:   onchain
   exposed-modules:
     Dex.OnChain.Token
@@ -77,9 +96,11 @@ library dex-onchain
     , hashable
     , containers
     , semigroups
+    , deepseq
+    , template-haskell                      >=2.13.0.0
 
 library betref-onchain
-  import:           betref-common
+  import:           betref-common, plutus-ghc-options
 
   -- so unfoldings are present even when compiled without optmizations
   ghc-options:
@@ -117,8 +138,8 @@ library dex-server-lib
     , plutus-ledger-api
     , base
     , aeson
-    , dex-onchain
-    , atlas
+    , dex1:dex-onchain
+    , atlas-cardano
     , swagger2
     , servant-server
     , servant-swagger
@@ -139,8 +160,8 @@ library betref-server-lib
   build-depends:
     , base
     , aeson
-    , betref-onchain
-    , atlas
+    , dex1:betref-onchain
+    , atlas-cardano
     , swagger2
     , servant-server
     , servant-swagger
@@ -161,8 +182,8 @@ executable dex-server
     , aeson-pretty
     , base
     , bytestring
-    , atlas
-    , dex-server-lib
+    , atlas-cardano
+    , dex1:dex-server-lib
     , servant-server
     , transformers
     , wai
@@ -184,8 +205,8 @@ executable betref-server
     , aeson-pretty
     , base
     , bytestring
-    , atlas
-    , betref-server-lib
+    , atlas-cardano
+    , dex1:betref-server-lib
     , servant-server
     , transformers
     , wai
@@ -205,9 +226,9 @@ test-suite dex-tests
   build-depends:
     , base
     , containers
-    , dex-onchain
-    , dex-server-lib
-    , atlas
+    , dex1:dex-onchain
+    , dex1:dex-server-lib
+    , atlas-cardano
     , mtl
     , plutus-simple-model
     , tasty
@@ -226,9 +247,9 @@ test-suite betref-tests
   build-depends:
     , base
     , containers
-    , betref-onchain
-    , betref-server-lib
-    , atlas
+    , dex1:betref-onchain
+    , dex1:betref-server-lib
+    , atlas-cardano
     , mtl
     , plutus-simple-model
     , tasty
@@ -245,9 +266,9 @@ test-suite dex-privnet-tests
 
   build-depends:
     , base
-    , dex-onchain
-    , dex-server-lib
-    , atlas
+    , dex1:dex-onchain
+    , dex1:dex-server-lib
+    , atlas-cardano
     , tasty
     , tasty-hunit
 
@@ -264,8 +285,8 @@ test-suite betref-privnet-tests
 
   build-depends:
     , base
-    , betref-onchain
-    , betref-server-lib
-    , atlas
+    , dex1:betref-onchain
+    , dex1:betref-server-lib
+    , atlas-cardano
     , tasty
     , tasty-hunit
