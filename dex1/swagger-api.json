@@ -112,7 +112,6 @@
             "required": [
                 "ctpUsedAddrs",
                 "ctpChangeAddr",
-                "ctpCollateral",
                 "ctpName",
                 "ctpDatumCount"
             ],
@@ -207,8 +206,7 @@
             },
             "required": [
                 "gpUsedAddrs",
-                "gpChangeAddr",
-                "gpCollateral"
+                "gpChangeAddr"
             ],
             "type": "object"
         },

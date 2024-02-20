@@ -1,7 +1,7 @@
 {    
     "coreProvider": { 
         "socketPath": "/var/lib/docker/volumes/8.7.3-cardano-preview-ipc/_data/node.socket", 
-        "maestroToken": "BvIFNRyFRhKeUXXx2DFWEwWsXXYzgUJq" },
+        "maestroToken": "uF9kiZxCM66C5bZsuNlBJBJ1tgrF1Uky" },
     "networkId": "testnet-preview",
     "logging": [{ "type": { "tag": "stderr" }, "severity": "Debug", "verbosity": "V2" }],
     "utxoCacheEnable": false
