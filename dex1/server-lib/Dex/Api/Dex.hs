@@ -155,6 +155,10 @@ data DefaultTxResponse = DefaultTxResponse
     unsignedTxResponse :: !UnsignedTxResponse
   } deriving (Show, Generic, FromJSON, ToJSON, Swagger.ToSchema)
 
+data Test1Response = Test1Response
+  { helloWorld :: !String
+  } deriving (Show, Generic, FromJSON, ToJSON, Swagger.ToSchema)
+
 
 -- | Construct `UnsignedTxResponse` return type for our endpoint given the transaction body & relevant index for UTxO (if such exists).
 unSignedTxWithFee :: GYTxBody -> Maybe Word -> UnsignedTxResponse
@@ -198,9 +202,11 @@ type DexApi =
   :<|> "token" :> "createDatumToken"
     :> ReqBody '[JSON] CreateTokensParams
     :> Post    '[JSON] UnsignedTxResponse
-  :<|> "token" :> "listDatum"
+  :<|> "token" :> "listDatum" 
     :> ReqBody '[JSON] HelloWorldParams
     :> Post    '[JSON] HelloWorldDataResponse
+  :<|> "test" :> "test1" 
+    :> Get '[JSON] Test1Response
 
 handleDexApi :: Ctx -> ServerT DexApi IO
 handleDexApi ctx =   handleStart ctx
@@ -215,6 +221,7 @@ handleDexApi ctx =   handleStart ctx
                 :<|> handleListBalance ctx
                 :<|> handleCreateDatumToken ctx
                 :<|> handleHello ctx
+                :<|> handleGetTest1 ctx
 
 handleStart :: Ctx -> StartParams -> IO StartResponse
 handleStart ctx StartParams{..} = do
@@ -355,3 +362,7 @@ handleHello ctx HelloWorldParams{..} = do
     hwdrMessage = [(ref, Script.mtdVals dat) | (ref, dat) <- hwdr]
   }
   -}
+
+handleGetTest1 :: Ctx -> IO Test1Response
+handleGetTest1 ctx = do
+  pure $ Test1Response "Hello world!!!"

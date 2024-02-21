@@ -499,6 +499,17 @@
             ],
             "type": "object"
         },
+        "Test1Response": {
+            "properties": {
+                "helloWorld": {
+                    "type": "string"
+                }
+            },
+            "required": [
+                "helloWorld"
+            ],
+            "type": "object"
+        },
         "UnsignedTxResponse": {
             "properties": {
                 "urspTxBodyHex": {
@@ -768,6 +779,21 @@
                     },
                     "400": {
                         "description": "Invalid `body`"
+                    }
+                }
+            }
+        },
+        "/dex/test/test1": {
+            "get": {
+                "produces": [
+                    "application/json;charset=utf-8"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/Test1Response"
+                        }
                     }
                 }
             }
